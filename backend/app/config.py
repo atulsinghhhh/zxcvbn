@@ -32,6 +32,11 @@ class Settings(BaseSettings):
         "http://localhost:3000",
     ]
 
+    # Regex matching allowed origins, for domains that vary per deploy.
+    # Default covers this project's Vercel URLs (production alias and the
+    # per-deployment preview URLs, which change on every push).
+    cors_origin_regex: str = r"https://zxcvbn-.*\.vercel\.app"
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _parse_cors_origins(cls, value: object) -> object:
