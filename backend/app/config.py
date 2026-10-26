@@ -1,6 +1,9 @@
 """Application configuration loaded from environment variables."""
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Annotated
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -22,7 +25,26 @@ class Settings(BaseSettings):
     # Initial backoff between retries (seconds); doubles each attempt
     http_retry_wait_seconds: float = 1.0
 
-    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # Accepts a JSON array (e.g. '["https://a.com"]') or a plain
+    # comma-separated string (e.g. 'https://a.com,https://b.com').
+    cors_origins: Annotated[list[str], NoDecode] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
+        text = value.strip()
+        if not text:
+            return []
+        if text.startswith("["):
+            import json
+
+            return json.loads(text)
+        return [origin.strip() for origin in text.split(",") if origin.strip()]
 
 
 settings = Settings()
