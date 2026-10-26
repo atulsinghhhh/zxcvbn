@@ -540,7 +540,7 @@ curl https://your-backend-url/api/health
 |---|---|
 | GitHub repository | https://github.com/atulsinghhhh/zxcvbn |
 | Frontend | https://zxcvbn-sable.vercel.app |
-| Backend health | https://zxcvbn-9oeq.vercel.app/api/health |
+| Backend health | https://zxcvbn-s7pl.onrender.com/api/health |
 | Demo video | *add after recording* |
 
 ---
