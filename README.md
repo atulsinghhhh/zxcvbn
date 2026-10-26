@@ -521,7 +521,7 @@ The backend requires a Python 3.11+ runtime. The `Dockerfile` in `backend/` is p
 Before going live, set the following environment variable on the backend host:
 
 ```bash
-WINDSIGHT_CORS_ORIGINS=["https://your-frontend-url.vercel.app"]
+WINDSIGHT_CORS_ORIGINS=["https://zxcvbn-sable.vercel.app"]
 ```
 
 Confirm the backend is running:
@@ -535,9 +535,9 @@ curl https://your-backend-url/api/health
 
 | Resource | URL |
 |---|---|
-| GitHub repository | *add after pushing* |
-| Frontend | *add after deploying* |
-| Backend health | *add after deploying* |
+| GitHub repository | https://github.com/atulsinghhhh/zxcvbn |
+| Frontend | https://zxcvbn-sable.vercel.app |
+| Backend health | *add after deploying backend* |
 | Demo video | *add after recording* |
 
 ---
