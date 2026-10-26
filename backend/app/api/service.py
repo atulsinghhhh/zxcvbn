@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from datetime import date, timedelta
 
 from starlette.concurrency import run_in_threadpool
@@ -14,8 +16,18 @@ from app.domain.evaluator import evaluate_day
 from app.domain.models import EvaluationResult
 from app.domain.timestamps import decision_cutoff_utc, delivery_window_utc
 
+logger = logging.getLogger(__name__)
+
 _WINDFOR_LOOKBACK_HOURS = 48
 _FUELHH_PUBLISH_BUFFER_HOURS = 24
+
+# Max days fetched from Elexon in parallel. Keeps multi-day ranges fast while
+# staying polite to the upstream API (and within the threadpool budget).
+_RANGE_CONCURRENCY = 8
+
+# Per-day outcome: (day, result, analytics) on success, or (day, None, None)
+# when no eligible forecast vintage exists for that day.
+DayOutcome = tuple[date, EvaluationResult | None, ForecastAnalytics | None]
 
 
 async def fetch_and_evaluate(
@@ -52,3 +64,32 @@ async def fetch_and_evaluate(
     )
     analytics = calculate_analytics(result.hours)
     return result, analytics
+
+
+async def evaluate_date_range(
+    from_date: date,
+    to_date: date,
+    cutoff_hour: int,
+    windfor: WindForClient,
+    fuelhh: FuelHHClient,
+) -> list[DayOutcome]:
+    """Evaluate every day in [from_date, to_date], fetching days concurrently.
+
+    Days are evaluated in parallel (bounded by ``_RANGE_CONCURRENCY``). Results
+    are returned in chronological order. A day with no eligible forecast vintage
+    yields ``(day, None, None)``; any upstream (ElexonClientError) failure
+    propagates and aborts the range.
+    """
+    semaphore = asyncio.Semaphore(_RANGE_CONCURRENCY)
+
+    async def _one(day: date) -> DayOutcome:
+        async with semaphore:
+            try:
+                result, analytics = await fetch_and_evaluate(day, cutoff_hour, windfor, fuelhh)
+            except ValueError as exc:
+                logger.info("No vintage for %s: %s", day.isoformat(), exc)
+                return day, None, None
+            return day, result, analytics
+
+    days = [from_date + timedelta(days=offset) for offset in range((to_date - from_date).days + 1)]
+    return await asyncio.gather(*(_one(day) for day in days))

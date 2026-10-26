@@ -1,13 +1,13 @@
 """Multi-day forecast accuracy endpoint."""
 
 import logging
-from datetime import date, timedelta
+from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.deps import get_fuelhh_client, get_windfor_client
 from app.api.schemas import AccuracyResponse, DayAccuracy
-from app.api.service import fetch_and_evaluate
+from app.api.service import evaluate_date_range
 from app.clients.fuelhh_client import FuelHHClient
 from app.clients.windfor_client import WindForClient
 
@@ -47,15 +47,13 @@ async def get_accuracy(
     days: list[DayAccuracy] = []
     failed_dates: list[str] = []
 
-    current = from_date
-    while current <= to_date:
-        try:
-            result, analytics = await fetch_and_evaluate(current, cutoff_hour, windfor, fuelhh)
+    for day, result, analytics in await evaluate_date_range(
+        from_date, to_date, cutoff_hour, windfor, fuelhh
+    ):
+        if result is None or analytics is None:
+            failed_dates.append(day.isoformat())
+        else:
             days.append(DayAccuracy.from_evaluation(result, analytics))
-        except ValueError as exc:
-            logger.info("No vintage for %s: %s", current.isoformat(), exc)
-            failed_dates.append(current.isoformat())
-        current += timedelta(days=1)
 
     days_with_data = sum(1 for d in days if d.metrics.evaluation_hours > 0)
 
