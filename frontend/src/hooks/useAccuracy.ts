@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { AccuracyResponse } from '../api/types';
+import { daysAgoIso, todayIso } from '../lib/formatters';
 
 export function useAccuracy(cutoffHour: number) {
   const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null);
@@ -13,7 +14,7 @@ export function useAccuracy(cutoffHour: number) {
     setError(null);
 
     api
-      .accuracy('2026-01-01', '2026-01-31', cutoffHour, controller.signal)
+      .accuracy(daysAgoIso(30), todayIso(), cutoffHour, controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return;
         setAccuracy(data);

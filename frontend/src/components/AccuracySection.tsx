@@ -21,23 +21,24 @@ function AggKpi({ label, value, unit, tooltip, signed = false }: AggKpiProps) {
 
   const valueColor =
     value === null
-      ? 'text-slate-500'
+      ? '#9497a9'
       : signed
       ? value > 0
-        ? 'text-amber-400'
-        : 'text-blue-400'
-      : 'text-white';
+        ? '#d11d45'
+        : '#7132f5'
+      : '#101114';
 
   return (
     <div
       title={tooltip}
-      className="rounded border border-slate-700 bg-slate-900 px-3 py-3"
+      className="rounded-lg px-3 py-3"
+      style={{ background: '#ffffff', boxShadow: 'rgba(0,0,0,0.03) 0px 4px 24px 0px' }}
     >
-      <p className="mb-1 text-xs text-slate-500">{label}</p>
-      <p className={`text-xl font-bold tabular-nums ${valueColor}`}>
+      <p className="mb-1 text-xs" style={{ color: '#686b82' }}>{label}</p>
+      <p className="text-xl font-bold tabular-nums" style={{ color: valueColor }}>
         {displayValue}
         {value !== null && (
-          <span className="ml-1 text-xs font-normal text-slate-400">{unit}</span>
+          <span className="ml-1 text-xs font-normal" style={{ color: '#686b82' }}>{unit}</span>
         )}
       </p>
     </div>
@@ -53,53 +54,24 @@ interface AggregatePanelProps {
   failedDates: string[];
 }
 
-function AggregatePanel({
-  metrics,
-  totalDays,
-  daysWithData,
-  failedDates,
-}: AggregatePanelProps) {
+function AggregatePanel({ metrics, totalDays, daysWithData, failedDates }: AggregatePanelProps) {
   return (
     <div>
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+      <h3 className="mb-3 text-xs font-medium uppercase tracking-widest" style={{ color: '#686b82' }}>
         January 2026 — Aggregate
       </h3>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <AggKpi
-          label="MAE"
-          value={metrics.mae_mw}
-          unit="MW"
-          tooltip="Mean Absolute Error across all evaluated intervals in January 2026."
-        />
-        <AggKpi
-          label="RMSE"
-          value={metrics.rmse_mw}
-          unit="MW"
-          tooltip="Root Mean Squared Error — penalises large errors more than MAE."
-        />
-        <AggKpi
-          label="Bias"
-          value={metrics.bias_mw}
-          unit="MW"
-          signed
-          tooltip="Mean signed error (forecast − actual). Positive = systematic over-forecast. Negative = systematic under-forecast."
-        />
-        <AggKpi
-          label="P90 Abs Error"
-          value={metrics.p90_abs_error_mw}
-          unit="MW"
-          tooltip="90th-percentile absolute error — the worst-case threshold exceeded in only 10% of intervals."
-        />
+        <AggKpi label="MAE" value={metrics.mae_mw} unit="MW" tooltip="Mean Absolute Error across all evaluated intervals in January 2026." />
+        <AggKpi label="RMSE" value={metrics.rmse_mw} unit="MW" tooltip="Root Mean Squared Error — penalises large errors more than MAE." />
+        <AggKpi label="Bias" value={metrics.bias_mw} unit="MW" signed tooltip="Mean signed error (forecast − actual). Positive = systematic over-forecast. Negative = systematic under-forecast." />
+        <AggKpi label="P90 Abs Error" value={metrics.p90_abs_error_mw} unit="MW" tooltip="90th-percentile absolute error — the worst-case threshold exceeded in only 10% of intervals." />
       </div>
-      <div className="mt-3 flex flex-wrap gap-6 text-xs text-slate-400">
-        <span>
-          {daysWithData} of {totalDays} days with data
-        </span>
+      <div className="mt-3 flex flex-wrap gap-6 text-xs" style={{ color: '#686b82' }}>
+        <span>{daysWithData} of {totalDays} days with data</span>
         <span>{metrics.evaluation_hours} intervals evaluated</span>
         {failedDates.length > 0 && (
-          <span className="text-amber-400">
-            {failedDates.length} date{failedDates.length !== 1 ? 's' : ''} skipped (no
-            eligible vintage)
+          <span style={{ color: '#d11d45' }}>
+            {failedDates.length} date{failedDates.length !== 1 ? 's' : ''} skipped (no eligible vintage)
           </span>
         )}
       </div>
@@ -118,72 +90,63 @@ interface DayTableProps {
 function DayTable({ days, highlightDeliveryDate, failedDates }: DayTableProps) {
   return (
     <div>
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+      <h3 className="mb-3 text-xs font-medium uppercase tracking-widest" style={{ color: '#686b82' }}>
         Day-by-Day Accuracy
       </h3>
-      <div className="overflow-x-auto rounded border border-slate-700">
+      <div className="overflow-x-auto rounded-lg" style={{ border: '1px solid #d4d4dc' }}>
         <table className="w-full text-xs" aria-label="Day-by-day forecast accuracy">
           <thead>
-            <tr className="border-b border-slate-700 bg-slate-900 text-left text-slate-400">
-              <th className="px-3 py-2 font-medium">Delivery Date</th>
-              <th className="px-3 py-2 font-medium">Selected Vintage</th>
-              <th className="px-3 py-2 text-right font-medium">Eval Hrs</th>
-              <th className="px-3 py-2 text-right font-medium">MAE</th>
-              <th className="px-3 py-2 text-right font-medium">RMSE</th>
-              <th className="px-3 py-2 text-right font-medium">Bias</th>
-              <th className="px-3 py-2 text-right font-medium">Max Abs Err</th>
+            <tr className="text-left" style={{ borderBottom: '1px solid #d4d4dc', background: '#f6f5f9' }}>
+              {['Delivery Date', 'Selected Vintage', 'Eval Hrs', 'MAE', 'RMSE', 'Bias', 'Max Abs Err'].map((h, i) => (
+                <th key={h} className={`px-3 py-2 font-medium ${i >= 2 ? 'text-right' : ''}`} style={{ color: '#686b82' }}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {days.map((day) => {
               const isHighlighted = day.delivery_date === highlightDeliveryDate;
               const bias = day.metrics.bias_mw;
-              const biasColor =
-                bias === null
-                  ? 'text-slate-500'
-                  : bias > 0
-                  ? 'text-amber-400'
-                  : 'text-blue-400';
+              const biasColor = bias === null ? '#9497a9' : bias > 0 ? '#d11d45' : '#7132f5';
 
               return (
                 <tr
                   key={day.delivery_date}
-                  className={`border-b border-slate-800 transition-colors ${
-                    isHighlighted
-                      ? 'bg-emerald-900/30 ring-1 ring-inset ring-emerald-700/50'
-                      : 'hover:bg-slate-800/50'
-                  }`}
+                  style={{
+                    borderBottom: '1px solid rgba(212,212,220,0.5)',
+                    background: isHighlighted ? '#f0ebfe' : undefined,
+                    outline: isHighlighted ? '1px solid rgba(113,50,245,0.2)' : undefined,
+                    outlineOffset: -1,
+                  }}
+                  onMouseEnter={(e) => { if (!isHighlighted) (e.currentTarget as HTMLTableRowElement).style.background = '#f6f5f9'; }}
+                  onMouseLeave={(e) => { if (!isHighlighted) (e.currentTarget as HTMLTableRowElement).style.background = ''; }}
                 >
-                  <td
-                    className={`px-3 py-2 font-medium ${
-                      isHighlighted ? 'text-emerald-300' : 'text-slate-200'
-                    }`}
-                  >
+                  <td className="px-3 py-2 font-medium" style={{ color: isHighlighted ? '#7132f5' : '#101114' }}>
                     {formatDate(day.delivery_date)}
                     {isHighlighted && (
-                      <span className="ml-2 rounded bg-emerald-900/60 px-1.5 py-0.5 text-[10px] text-emerald-400">
+                      <span
+                        className="ml-2 rounded-full px-1.5 py-0.5 text-[10px]"
+                        style={{ background: '#e4dcf9', color: '#7132f5' }}
+                      >
                         selected
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-slate-400">
+                  <td className="px-3 py-2" style={{ color: '#686b82' }}>
                     {formatDateTimeUtc(day.selected_vintage_utc)}
                   </td>
-                  <td className="px-3 py-2 text-right text-slate-300">
+                  <td className="px-3 py-2 text-right" style={{ color: '#101114' }}>
                     {day.metrics.evaluation_hours}
                   </td>
-                  <td className="px-3 py-2 text-right text-slate-300">
+                  <td className="px-3 py-2 text-right" style={{ color: '#101114' }}>
                     {formatMw(day.metrics.mae_mw)}
                   </td>
-                  <td className="px-3 py-2 text-right text-slate-300">
+                  <td className="px-3 py-2 text-right" style={{ color: '#101114' }}>
                     {formatMw(day.metrics.rmse_mw)}
                   </td>
-                  <td className={`px-3 py-2 text-right font-medium tabular-nums ${biasColor}`}>
-                    {bias !== null
-                      ? (bias > 0 ? '+' : '') + bias.toFixed(0) + ' MW'
-                      : '—'}
+                  <td className="px-3 py-2 text-right font-medium tabular-nums" style={{ color: biasColor }}>
+                    {bias !== null ? (bias > 0 ? '+' : '') + bias.toFixed(0) + ' MW' : '—'}
                   </td>
-                  <td className="px-3 py-2 text-right text-slate-400">
+                  <td className="px-3 py-2 text-right" style={{ color: '#686b82' }}>
                     {formatMw(day.metrics.max_abs_error_mw)}
                   </td>
                 </tr>
@@ -191,10 +154,7 @@ function DayTable({ days, highlightDeliveryDate, failedDates }: DayTableProps) {
             })}
             {days.length === 0 && (
               <tr>
-                <td
-                  colSpan={7}
-                  className="px-3 py-8 text-center text-slate-500"
-                >
+                <td colSpan={7} className="px-3 py-8 text-center" style={{ color: '#9497a9' }}>
                   No accuracy data available for January 2026.
                 </td>
               </tr>
@@ -203,7 +163,7 @@ function DayTable({ days, highlightDeliveryDate, failedDates }: DayTableProps) {
         </table>
       </div>
       {failedDates.length > 0 && (
-        <p className="mt-2 text-xs text-amber-400">
+        <p className="mt-2 text-xs" style={{ color: '#d11d45' }}>
           Dates without eligible vintage: {failedDates.join(', ')}
         </p>
       )}
@@ -220,7 +180,6 @@ interface AccuracySectionProps {
   accuracy: AccuracyResponse | null;
   accuracyLoading: boolean;
   accuracyError: string | null;
-  /** The delivery date currently selected in the single-day view, for row highlighting. */
   highlightDeliveryDate: string;
 }
 
@@ -239,7 +198,7 @@ export function AccuracySection({
     return (
       <div className="flex items-center justify-center py-16" role="status">
         <LoadingSpinner />
-        <span className="ml-3 text-slate-400">
+        <span className="ml-3" style={{ color: '#686b82' }}>
           Loading January 2026 accuracy data…
         </span>
       </div>
@@ -248,7 +207,6 @@ export function AccuracySection({
 
   return (
     <div className="space-y-8">
-      {/* Overview aggregate metrics */}
       {overviewError ? (
         <ErrorBanner message={overviewError} label="Overview API error" />
       ) : overview?.aggregate_metrics ? (
@@ -259,12 +217,11 @@ export function AccuracySection({
           failedDates={overview.failed_dates}
         />
       ) : (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm" style={{ color: '#9497a9' }}>
           No aggregate metrics available — all January dates may have failed.
         </p>
       )}
 
-      {/* Day-by-day table from /api/accuracy */}
       {accuracyError ? (
         <ErrorBanner message={accuracyError} label="Accuracy API error" />
       ) : accuracy ? (

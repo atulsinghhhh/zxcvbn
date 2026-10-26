@@ -17,23 +17,17 @@ function getStatus(h: HourDetail): string {
 
 function statusColor(status: string): string {
   switch (status) {
-    case 'Evaluated':
-      return 'text-emerald-400';
-    case 'No actual':
-      return 'text-amber-400';
-    case 'No forecast':
-    case 'No data':
-      return 'text-slate-500';
-    default:
-      return 'text-slate-400';
+    case 'Evaluated': return '#08844f';
+    case 'No actual': return '#d11d45';
+    default: return '#9497a9';
   }
 }
 
 function rowErrorColor(h: HourDetail): string {
-  if (h.abs_error_mw !== null && h.abs_error_mw > 500) return 'text-red-300';
-  if (h.signed_error_mw !== null && h.signed_error_mw > 0) return 'text-emerald-300';
-  if (h.signed_error_mw !== null && h.signed_error_mw < 0) return 'text-amber-300';
-  return 'text-slate-200';
+  if (h.abs_error_mw !== null && h.abs_error_mw > 500) return '#d11d45';
+  if (h.signed_error_mw !== null && h.signed_error_mw > 0) return '#d11d45';
+  if (h.signed_error_mw !== null && h.signed_error_mw < 0) return '#7132f5';
+  return '#101114';
 }
 
 function fmt(value: number | null, decimals = 0): string {
@@ -50,15 +44,7 @@ interface Props {
   error: string | null;
 }
 
-export function IntervalsTable({
-  hours,
-  total,
-  offset,
-  limit,
-  onPageChange,
-  isLoading,
-  error,
-}: Props) {
+export function IntervalsTable({ hours, total, offset, limit, onPageChange, isLoading, error }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('start_uk');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
@@ -84,9 +70,9 @@ export function IntervalsTable({
   function SortIcon({ k }: { k: SortKey }) {
     if (sortKey !== k) return <ChevronUp className="h-3 w-3 opacity-30" />;
     return sortDir === 'asc' ? (
-      <ChevronUp className="h-3 w-3 text-emerald-400" />
+      <ChevronUp className="h-3 w-3" style={{ color: '#7132f5' }} />
     ) : (
-      <ChevronDown className="h-3 w-3 text-emerald-400" />
+      <ChevronDown className="h-3 w-3" style={{ color: '#7132f5' }} />
     );
   }
 
@@ -94,7 +80,8 @@ export function IntervalsTable({
     return (
       <button
         onClick={() => handleSort(k)}
-        className="flex items-center gap-1 hover:text-white"
+        className="flex items-center gap-1"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', font: 'inherit', padding: 0 }}
         aria-label={`Sort by ${label}`}
       >
         {label}
@@ -112,10 +99,10 @@ export function IntervalsTable({
     <div>
       {error && <ErrorBanner message={error} label="Table error" />}
 
-      <div className="overflow-x-auto rounded-lg border border-slate-700">
+      <div className="overflow-x-auto rounded-lg" style={{ border: '1px solid #d4d4dc' }}>
         <table className="min-w-full text-sm">
-          <thead className="border-b border-slate-700 bg-slate-800/80">
-            <tr className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <thead style={{ borderBottom: '1px solid #d4d4dc', background: '#f6f5f9' }}>
+            <tr className="text-xs font-medium uppercase tracking-wider" style={{ color: '#686b82' }}>
               <th className="px-4 py-3 text-left">
                 <ColHeader k="start_uk" label="Delivery Time (UK)" />
               </th>
@@ -132,7 +119,7 @@ export function IntervalsTable({
               <th className="px-4 py-3 text-left">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/50 bg-slate-800/30">
+          <tbody>
             {isLoading ? (
               <tr>
                 <td colSpan={6} className="py-12 text-center">
@@ -143,7 +130,7 @@ export function IntervalsTable({
               </tr>
             ) : sorted.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-sm text-slate-500">
+                <td colSpan={6} className="py-8 text-center text-sm" style={{ color: '#9497a9' }}>
                   No interval data available for this date.
                 </td>
               </tr>
@@ -154,23 +141,25 @@ export function IntervalsTable({
                 return (
                   <tr
                     key={h.start_utc}
-                    className="transition-colors hover:bg-slate-700/30"
+                    style={{ borderBottom: '1px solid rgba(212,212,220,0.5)' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = '#f6f5f9'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = ''; }}
                   >
-                    <td className="px-4 py-2.5 text-slate-300">{formatDateTime(h.start_uk)}</td>
-                    <td className={`px-4 py-2.5 text-right font-mono ${h.forecast_mw === null ? 'text-slate-500' : 'text-emerald-300'}`}>
+                    <td className="px-4 py-2.5" style={{ color: '#101114' }}>{formatDateTime(h.start_uk)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono" style={{ color: h.forecast_mw === null ? '#9497a9' : '#7132f5' }}>
                       {fmt(h.forecast_mw)}
                     </td>
-                    <td className={`px-4 py-2.5 text-right font-mono ${h.actual_mw === null ? 'text-slate-500' : 'text-blue-300'}`}>
+                    <td className="px-4 py-2.5 text-right font-mono" style={{ color: h.actual_mw === null ? '#9497a9' : '#2e3350' }}>
                       {fmt(h.actual_mw)}
                     </td>
-                    <td className={`px-4 py-2.5 text-right font-mono ${h.signed_error_mw === null ? 'text-slate-500' : errColor}`}>
+                    <td className="px-4 py-2.5 text-right font-mono" style={{ color: h.signed_error_mw === null ? '#9497a9' : errColor }}>
                       {h.signed_error_mw !== null && h.signed_error_mw > 0 ? '+' : ''}
                       {fmt(h.signed_error_mw)}
                     </td>
-                    <td className={`px-4 py-2.5 text-right font-mono ${h.abs_error_mw === null ? 'text-slate-500' : 'text-slate-200'}`}>
+                    <td className="px-4 py-2.5 text-right font-mono" style={{ color: h.abs_error_mw === null ? '#9497a9' : '#101114' }}>
                       {fmt(h.abs_error_mw)}
                     </td>
-                    <td className={`px-4 py-2.5 text-xs font-medium ${statusColor(status)}`}>
+                    <td className="px-4 py-2.5 text-xs font-medium" style={{ color: statusColor(status) }}>
                       {status}
                     </td>
                   </tr>
@@ -183,7 +172,7 @@ export function IntervalsTable({
 
       {/* Pagination */}
       {total > 0 && (
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+        <div className="mt-3 flex items-center justify-between text-xs" style={{ color: '#686b82' }}>
           <span>
             Showing {from}–{to} of {total}
           </span>
@@ -192,7 +181,10 @@ export function IntervalsTable({
               onClick={() => onPageChange(Math.max(0, offset - limit))}
               disabled={!canPrev}
               aria-label="Previous page"
-              className="flex items-center gap-1 rounded border border-slate-600 px-2.5 py-1.5 text-slate-300 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ border: '1px solid #d4d4dc', color: '#101114', background: '#ffffff' }}
+              onMouseEnter={(e) => { if (canPrev) (e.currentTarget as HTMLButtonElement).style.background = '#f6f5f9'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#ffffff'; }}
             >
               <ChevronLeft className="h-3 w-3" />
               Prev
@@ -201,7 +193,10 @@ export function IntervalsTable({
               onClick={() => onPageChange(offset + limit)}
               disabled={!canNext}
               aria-label="Next page"
-              className="flex items-center gap-1 rounded border border-slate-600 px-2.5 py-1.5 text-slate-300 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ border: '1px solid #d4d4dc', color: '#101114', background: '#ffffff' }}
+              onMouseEnter={(e) => { if (canNext) (e.currentTarget as HTMLButtonElement).style.background = '#f6f5f9'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#ffffff'; }}
             >
               Next
               <ChevronRight className="h-3 w-3" />

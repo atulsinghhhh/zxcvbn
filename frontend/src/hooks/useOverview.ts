@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { OverviewResponse } from '../api/types';
+import { daysAgoIso, todayIso } from '../lib/formatters';
 
 export function useOverview(cutoffHour: number) {
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
@@ -13,7 +14,7 @@ export function useOverview(cutoffHour: number) {
     setError(null);
 
     api
-      .overview('2026-01-01', '2026-01-31', cutoffHour, controller.signal)
+      .overview(daysAgoIso(30), todayIso(), cutoffHour, controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return;
         setOverview(data);

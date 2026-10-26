@@ -1,4 +1,19 @@
-import { format, parseISO, addDays } from 'date-fns';
+import { format, parseISO, addDays, subDays } from 'date-fns';
+
+/** Today's date as yyyy-MM-dd (local time). */
+export function todayIso(): string {
+  return format(new Date(), 'yyyy-MM-dd');
+}
+
+/** Yesterday's date as yyyy-MM-dd — the default decision date (latest complete delivery day). */
+export function yesterdayIso(): string {
+  return format(subDays(new Date(), 1), 'yyyy-MM-dd');
+}
+
+/** The date `n` days before today as yyyy-MM-dd. */
+export function daysAgoIso(n: number): string {
+  return format(subDays(new Date(), n), 'yyyy-MM-dd');
+}
 
 export function formatTime(isoString: string): string {
   return format(parseISO(isoString), 'HH:mm');

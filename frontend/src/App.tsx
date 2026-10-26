@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useWindSight } from './hooks/useWindSight';
 import { useActiveSection } from './hooks/useActiveSection';
 import { useOverview } from './hooks/useOverview';
@@ -11,7 +12,10 @@ import { ErrorChart } from './components/ErrorChart';
 import { IntervalsTable } from './components/IntervalsTable';
 import { DataProvenance } from './components/DataProvenance';
 import { AccuracySection } from './components/AccuracySection';
+import { OverviewSummary } from './components/OverviewSummary';
 import { ErrorBanner } from './components/ErrorBanner';
+import { LandingPage } from './pages/LandingPage';
+import { formatDate } from './lib/formatters';
 import type { HourDetail } from './api/types';
 
 function avgMw(hours: HourDetail[], key: 'forecast_mw' | 'actual_mw'): number | null {
@@ -21,6 +25,8 @@ function avgMw(hours: HourDetail[], key: 'forecast_mw' | 'actual_mw'): number | 
 }
 
 export default function App() {
+  const [view, setView] = useState<'landing' | 'app'>('landing');
+
   const {
     decisionDate,
     deliveryDate,
@@ -37,19 +43,28 @@ export default function App() {
   } = useWindSight();
 
   const [activeSection, navigateTo] = useActiveSection();
-
-  // Monthly data — always fetched so switching tabs never triggers a refetch
   const { overview, loading: overviewLoading, error: overviewError } = useOverview(cutoffHour);
   const { accuracy, loading: accuracyLoading, error: accuracyError } = useAccuracy(cutoffHour);
+
+  if (view === 'landing') {
+    return <LandingPage onEnter={() => setView('app')} />;
+  }
 
   const hours = forecast?.hours ?? [];
   const metrics = forecast?.metrics ?? null;
   const avgForecast = avgMw(hours, 'forecast_mw');
   const avgActual = avgMw(hours, 'actual_mw');
+  const analysisPeriod = overview
+    ? `${formatDate(overview.from_date)} – ${formatDate(overview.to_date)}`
+    : undefined;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <Sidebar activeSection={activeSection} onNavigate={navigateTo} />
+    <div className="min-h-screen" style={{ background: '#f6f5f9', color: '#101114' }}>
+      <Sidebar
+        activeSection={activeSection}
+        onNavigate={navigateTo}
+        onBack={() => setView('landing')}
+      />
 
       <div className="ml-60 flex min-h-screen flex-col">
         <Header
@@ -64,15 +79,34 @@ export default function App() {
 
         <main className="flex-1 p-6">
 
-          {/* ── Overview ─────────────────────────────────────────────────── */}
+          {/* ── Overview ──────────────────────────────────────────────────── */}
           {activeSection === 'overview' && (
             <section id="section-overview" aria-labelledby="section-overview-heading">
               <h2
                 id="section-overview-heading"
-                className="mb-6 text-xs font-semibold uppercase tracking-widest text-slate-500"
+                className="mb-6 text-xs font-medium uppercase tracking-widest"
+                style={{ color: '#9497a9' }}
               >
                 Overview
               </h2>
+
+              <OverviewSummary
+                overview={overview}
+                isLoading={overviewLoading}
+                error={overviewError}
+              />
+
+              <div className="mb-3 flex items-baseline justify-between">
+                <span
+                  className="text-xs font-medium uppercase tracking-widest"
+                  style={{ color: '#9497a9' }}
+                >
+                  Selected Delivery Day
+                </span>
+                <span className="text-xs" style={{ color: '#9497a9' }}>
+                  {deliveryDate}
+                </span>
+              </div>
 
               {forecastError && (
                 <ErrorBanner message={forecastError} label="Forecast API error" />
@@ -116,9 +150,7 @@ export default function App() {
                     unit="MW"
                     tooltip="Mean Absolute Error: average of |forecast − actual| across evaluated intervals. Provided by the backend."
                     status={
-                      metrics?.mae_mw !== null && metrics?.mae_mw !== undefined
-                        ? 'ok'
-                        : 'unavailable'
+                      metrics?.mae_mw !== null && metrics?.mae_mw !== undefined ? 'ok' : 'unavailable'
                     }
                     data-testid="kpi-mae"
                   />
@@ -145,41 +177,43 @@ export default function App() {
             </section>
           )}
 
-          {/* ── Forecast Analysis ────────────────────────────────────────── */}
+          {/* ── Forecast Analysis ─────────────────────────────────────────── */}
           {activeSection === 'forecast' && (
             <section id="section-forecast" aria-labelledby="section-forecast-heading">
               <h2
                 id="section-forecast-heading"
-                className="mb-6 text-xs font-semibold uppercase tracking-widest text-slate-500"
+                className="mb-6 text-xs font-medium uppercase tracking-widest"
+                style={{ color: '#9497a9' }}
               >
                 Forecast Analysis
               </h2>
 
               <div className="space-y-6">
-                <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-                  <h3 className="mb-4 text-sm font-semibold text-slate-200">
+                <div
+                  className="rounded-lg p-4"
+                  style={{ background: '#ffffff', boxShadow: 'rgba(0,0,0,0.03) 0px 4px 24px 0px', border: '1px solid #d4d4dc' }}
+                >
+                  <h3 className="mb-4 text-sm font-semibold" style={{ color: '#101114' }}>
                     Forecast vs Actual Generation
                   </h3>
-                  <ForecastChart
-                    hours={hours}
-                    isLoading={forecastLoading}
-                    error={forecastError}
-                  />
+                  <ForecastChart hours={hours} isLoading={forecastLoading} error={forecastError} />
                 </div>
 
-                <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-                  <h3 className="mb-1 text-sm font-semibold text-slate-200">
+                <div
+                  className="rounded-lg p-4"
+                  style={{ background: '#ffffff', boxShadow: 'rgba(0,0,0,0.03) 0px 4px 24px 0px', border: '1px solid #d4d4dc' }}
+                >
+                  <h3 className="mb-1 text-sm font-semibold" style={{ color: '#101114' }}>
                     Forecast Error by Interval
                   </h3>
-                  <ErrorChart
-                    hours={hours}
-                    isLoading={forecastLoading}
-                    error={forecastError}
-                  />
+                  <ErrorChart hours={hours} isLoading={forecastLoading} error={forecastError} />
                 </div>
 
-                <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-                  <h3 className="mb-4 text-sm font-semibold text-slate-200">
+                <div
+                  className="rounded-lg p-4"
+                  style={{ background: '#ffffff', boxShadow: 'rgba(0,0,0,0.03) 0px 4px 24px 0px', border: '1px solid #d4d4dc' }}
+                >
+                  <h3 className="mb-4 text-sm font-semibold" style={{ color: '#101114' }}>
                     Interval-Level Data
                   </h3>
                   <IntervalsTable
@@ -201,12 +235,16 @@ export default function App() {
             <section id="section-accuracy" aria-labelledby="section-accuracy-heading">
               <h2
                 id="section-accuracy-heading"
-                className="mb-6 text-xs font-semibold uppercase tracking-widest text-slate-500"
+                className="mb-6 text-xs font-medium uppercase tracking-widest"
+                style={{ color: '#9497a9' }}
               >
                 Historical Accuracy
               </h2>
 
-              <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
+              <div
+                className="rounded-lg p-6"
+                style={{ background: '#ffffff', boxShadow: 'rgba(0,0,0,0.03) 0px 4px 24px 0px', border: '1px solid #d4d4dc' }}
+              >
                 <AccuracySection
                   overview={overview}
                   overviewLoading={overviewLoading}
@@ -220,16 +258,17 @@ export default function App() {
             </section>
           )}
 
-          {/* ── Data Sources ─────────────────────────────────────────────── */}
+          {/* ── Data Sources ──────────────────────────────────────────────── */}
           {activeSection === 'data-sources' && (
             <section id="section-data-sources" aria-labelledby="section-data-sources-heading">
               <h2
                 id="section-data-sources-heading"
-                className="mb-6 text-xs font-semibold uppercase tracking-widest text-slate-500"
+                className="mb-6 text-xs font-medium uppercase tracking-widest"
+                style={{ color: '#9497a9' }}
               >
                 Data Sources
               </h2>
-              <DataProvenance />
+              <DataProvenance analysisPeriod={analysisPeriod} />
             </section>
           )}
 

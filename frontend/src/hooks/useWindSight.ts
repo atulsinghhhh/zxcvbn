@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import type { ForecastResponse, IntervalsResponse } from '../api/types';
-import { addOneDay } from '../lib/formatters';
+import { addOneDay, yesterdayIso } from '../lib/formatters';
 
 interface WindSightState {
   decisionDate: string;
@@ -20,7 +20,7 @@ interface WindSightState {
 }
 
 export function useWindSight(): WindSightState {
-  const [decisionDate, setDecisionDate] = useState('2026-01-14');
+  const [decisionDate, setDecisionDate] = useState(yesterdayIso());
   const cutoffHour = 11;
   const [refreshKey, setRefreshKey] = useState(0);
   const [forecast, setForecast] = useState<ForecastResponse | null>(null);

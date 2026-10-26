@@ -41,15 +41,18 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   const error = forecast !== null && actual !== null ? forecast - actual : null;
 
   return (
-    <div className="rounded-lg border border-slate-600 bg-slate-800 p-3 text-xs shadow-xl">
-      <p className="mb-2 font-semibold text-slate-200">{label}</p>
-      <p className="text-emerald-300">
+    <div
+      className="rounded-lg p-3 text-xs shadow-xl"
+      style={{ background: '#ffffff', border: '1px solid #d4d4dc' }}
+    >
+      <p className="mb-2 font-semibold" style={{ color: '#101114' }}>{label}</p>
+      <p style={{ color: '#7132f5' }}>
         Forecast: {forecast !== null ? `${forecast.toFixed(0)} MW` : '—'}
       </p>
-      <p className="text-blue-300">
+      <p style={{ color: '#2e3350' }}>
         Actual: {actual !== null ? `${actual.toFixed(0)} MW` : '—'}
       </p>
-      <p className={error !== null ? (error > 0 ? 'text-amber-300' : 'text-blue-300') : 'text-slate-500'}>
+      <p style={{ color: error !== null ? (error > 0 ? '#d11d45' : '#08844f') : '#9497a9' }}>
         Error: {error !== null ? `${error > 0 ? '+' : ''}${error.toFixed(0)} MW` : '—'}
       </p>
     </div>
@@ -77,7 +80,7 @@ export function ForecastChart({ hours, isLoading, error }: Props) {
 
   if (hours.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-slate-500">
+      <div className="flex h-64 items-center justify-center text-sm" style={{ color: '#9497a9' }}>
         No forecast data available for this date.
       </div>
     );
@@ -94,30 +97,28 @@ export function ForecastChart({ hours, isLoading, error }: Props) {
   return (
     <ResponsiveContainer width="100%" height={320}>
       <LineChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f4" />
         <XAxis
           dataKey="timeLabel"
-          tick={{ fill: '#94a3b8', fontSize: 11 }}
+          tick={{ fill: '#686b82', fontSize: 11 }}
           tickLine={false}
-          axisLine={{ stroke: '#475569' }}
+          axisLine={{ stroke: '#d4d4dc' }}
           interval="preserveStartEnd"
         />
         <YAxis
-          tick={{ fill: '#94a3b8', fontSize: 11 }}
+          tick={{ fill: '#686b82', fontSize: 11 }}
           tickLine={false}
-          axisLine={{ stroke: '#475569' }}
-          label={{ value: 'MW', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 11 }}
+          axisLine={{ stroke: '#d4d4dc' }}
+          label={{ value: 'MW', angle: -90, position: 'insideLeft', fill: '#9497a9', fontSize: 11 }}
           width={64}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Legend
-          wrapperStyle={{ fontSize: 12, color: '#94a3b8' }}
-        />
+        <Legend wrapperStyle={{ fontSize: 12, color: '#686b82' }} />
         <Line
           type="monotone"
           dataKey="forecast_mw"
           name="Forecast"
-          stroke="#10b981"
+          stroke="#7132f5"
           strokeWidth={2}
           dot={false}
           connectNulls={false}
@@ -126,7 +127,7 @@ export function ForecastChart({ hours, isLoading, error }: Props) {
           type="monotone"
           dataKey="actual_mw"
           name="Actual"
-          stroke="#3b82f6"
+          stroke="#2e3350"
           strokeWidth={2}
           dot={false}
           connectNulls={false}
