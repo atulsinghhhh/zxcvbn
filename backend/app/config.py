@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     # Initial backoff between retries (seconds); doubles each attempt
     http_retry_wait_seconds: float = 1.0
 
+    # In-memory cache for upstream Elexon GET responses. Elexon data for past
+    # dates is immutable, so caching avoids refetching on repeat queries.
+    # Set the TTL to 0 to disable caching entirely.
+    cache_ttl_seconds: float = 900.0
+    cache_max_entries: int = 512
+
     # Accepts a JSON array (e.g. '["https://a.com"]') or a plain
     # comma-separated string (e.g. 'https://a.com,https://b.com').
     cors_origins: Annotated[list[str], NoDecode] = [

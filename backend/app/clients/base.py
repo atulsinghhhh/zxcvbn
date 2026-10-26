@@ -1,10 +1,12 @@
 """Shared HTTP client with timeout and bounded retry logic."""
 
+import json
 import logging
 from datetime import UTC, datetime
 
 import httpx
 
+from app.clients.cache import TTLCache
 from app.config import settings
 from app.exceptions import ElexonHTTPError, ElexonNetworkError
 
@@ -35,6 +37,15 @@ class ElexonBaseClient:
             timeout=timeout,
             headers={"Accept": "application/json"},
         )
+        self._cache: TTLCache[list[dict]] = TTLCache(  # type: ignore[type-arg]
+            ttl_seconds=settings.cache_ttl_seconds,
+            max_entries=settings.cache_max_entries,
+        )
+
+    @staticmethod
+    def _cache_key(path: str, params: dict[str, str]) -> str:
+        # Params are sorted so key order never changes the key.
+        return path + "?" + json.dumps(params, sort_keys=True, separators=(",", ":"))
 
     def close(self) -> None:
         self._client.close()
@@ -52,7 +63,15 @@ class ElexonBaseClient:
             ElexonHTTPError:       non-retryable HTTP error (4xx or exhausted retries).
             ElexonNetworkError:    network-level failure after exhausted retries.
         """
-        return self._get_with_retry(path, params)
+        key = self._cache_key(path, params)
+        cached = self._cache.get(key)
+        if cached is not None:
+            logger.debug("Cache hit: %s", key)
+            return cached
+
+        result = self._get_with_retry(path, params)
+        self._cache.set(key, result)
+        return result
 
     def _get_with_retry(self, path: str, params: dict[str, str]) -> list[dict]:  # type: ignore[type-arg]
         attempt = 0

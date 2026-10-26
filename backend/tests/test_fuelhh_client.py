@@ -7,6 +7,7 @@ import pytest
 import respx
 
 from app.clients.base import ElexonBaseClient
+from app.clients.cache import TTLCache
 from app.clients.fuelhh_client import FuelHHClient
 from app.config import settings
 from app.exceptions import ElexonHTTPError, ElexonNetworkError, ElexonValidationError
@@ -41,6 +42,7 @@ def make_client(mock_transport: respx.Router) -> FuelHHClient:
     )
     elexon = ElexonBaseClient.__new__(ElexonBaseClient)
     elexon._client = inner
+    elexon._cache = TTLCache(ttl_seconds=0, max_entries=1)  # disabled for unit tests
     client = FuelHHClient(http=elexon)
     return client
 

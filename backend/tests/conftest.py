@@ -5,6 +5,7 @@ import pytest
 import respx
 
 from app.clients.base import ElexonBaseClient
+from app.clients.cache import TTLCache
 from app.config import settings
 
 
@@ -27,5 +28,6 @@ def base_client(mock_transport):
     # Patch the internal _client so our mocked transport is used
     elexon = ElexonBaseClient.__new__(ElexonBaseClient)
     elexon._client = client
+    elexon._cache = TTLCache(ttl_seconds=0, max_entries=1)  # disabled for unit tests
     yield elexon
     client.close()

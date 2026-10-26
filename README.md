@@ -255,7 +255,10 @@ Copy `.env.example` to `.env` (backend) and `frontend/.env` (frontend) and adjus
 | `WINDSIGHT_HTTP_TIMEOUT_SECONDS` | `30.0` | Wall-clock timeout per HTTP request (seconds) |
 | `WINDSIGHT_HTTP_MAX_RETRIES` | `3` | Max retry attempts for transient 5xx/429 errors |
 | `WINDSIGHT_HTTP_RETRY_WAIT_SECONDS` | `1.0` | Initial backoff (doubles each attempt) |
-| `WINDSIGHT_CORS_ORIGINS` | `["http://localhost:5173","http://localhost:3000"]` | Allowed CORS origins (JSON array). **Must include the production frontend URL before deployment.** |
+| `WINDSIGHT_CACHE_TTL_SECONDS` | `900.0` | TTL for the in-memory Elexon response cache; `0` disables caching |
+| `WINDSIGHT_CACHE_MAX_ENTRIES` | `512` | Max cached responses before LRU eviction |
+| `WINDSIGHT_CORS_ORIGINS` | `["http://localhost:5173","http://localhost:3000"]` | Allowed CORS origins. Accepts a JSON array, a comma-separated string, or a single origin. **Must include the production frontend URL before deployment.** |
+| `WINDSIGHT_CORS_ORIGIN_REGEX` | `https://zxcvbn-.*\.vercel\.app` | Regex for origins that vary per deploy (e.g. Vercel preview URLs) |
 
 ### Frontend (`frontend/.env`)
 
